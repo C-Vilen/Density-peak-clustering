@@ -23,5 +23,8 @@ public class Main {
 
         // 7. Set cluster labels for all points 
         dpc.clusterDataset(77_000, 5);
+
+        // 8. Output the dataset with cluster labels on the last column
+        file.outputData();
     }
 }
