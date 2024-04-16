@@ -1,4 +1,6 @@
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -6,6 +8,7 @@ import java.util.stream.Stream;
 public class DPC {
     private ArrayList<Point> dataset;
     private Map<String, Double> distanceBetweenPairsMap;
+    private Map<Point, Point> nearestNeighbourMap;
     private Double maxDistance = Double.MAX_VALUE;
     private Double minDistance = Double.MIN_VALUE; 
     
@@ -89,6 +92,65 @@ public class DPC {
                 int[] pointPair = Stream.of(pair.getKey().split(" ")).mapToInt(Integer::parseInt).toArray();
                 dataset.get(pointPair[0]).incrementRho();
                 dataset.get(pointPair[1]).incrementRho();
+            }
+        }
+    }
+
+    /**
+     * Find the nearest neighbour distance between points i and j where rho of J is equal or larger than rho of I 
+     * @throws Exception from helper method findDistance(i, j) if the coordinates of I and J are not an equal size.
+     */
+    public void calculateNNDistanceWithHigherRho() throws Exception{
+        sortDatasetByRho();
+        nearestNeighbourMap = new HashMap<>();
+        for (int i = 0; i < dataset.size(); i++) {
+            if(i == 0){
+                dataset.get(0).setNearestNeighbourDistance(Double.MAX_VALUE);
+                nearestNeighbourMap.put(dataset.get(0), null);
+            } else {
+                double minimumDistanceIJ = Double.MAX_VALUE;
+                int neighbourIndex = 0;
+                for (int j = 0; j < i; j++) {
+                    double distance = findDistance(dataset.get(i), dataset.get(j));
+                    if (distance < minimumDistanceIJ) {
+                        minimumDistanceIJ = distance;
+                        neighbourIndex = j;
+                    }
+                }
+                dataset.get(i).setNearestNeighbourDistance(minimumDistanceIJ);
+                nearestNeighbourMap.put(dataset.get(i), dataset.get(neighbourIndex));
+            }
+        }
+    }
+
+    /**
+     * Helper method to sort the arraylist of points by their rho value in descending order.
+     */
+    private void sortDatasetByRho(){
+        Collections.sort(dataset, Comparator.comparing(Point::getRho).reversed());
+    }
+
+    public void clusterDataset(double deltaMinimum, double rhoMinimum){
+        Point currentPoint;
+        int currentClusterLabel = 1; 
+        // Finds peaks/cluster centers
+        for (int i = 0; i < dataset.size(); i++) {
+            currentPoint = dataset.get(i);
+            if (currentPoint.getNearestNeighbourDistance() >= deltaMinimum && currentPoint.getRho() >= rhoMinimum) {
+                currentPoint.setClusterLabel(currentClusterLabel);
+                currentClusterLabel++;
+            }
+        }
+
+        // Set labels for remaining points in dataset
+        for (int i = 1; i < dataset.size(); i++) {
+            currentPoint = dataset.get(i);
+            if(currentPoint.getClusterLabel() == 0){
+                if(nearestNeighbourMap.containsKey(currentPoint)){
+                    currentPoint.setClusterLabel(nearestNeighbourMap.get(currentPoint).getClusterLabel());
+                } else {
+                    currentPoint.setClusterLabel(-1);
+                }
             }
         }
     }
