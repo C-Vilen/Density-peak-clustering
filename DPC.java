@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public class DPC {
     private ArrayList<Point> dataset;
@@ -20,7 +21,7 @@ public class DPC {
         if (dataset == null) throw new IllegalArgumentException("The dataset must be initialised before calculating the distance between pairs");
         
         distanceBetweenPairsMap = new HashMap<>();
-        for (int i = 0; i < dataset.size(); i++) {
+        for (int i = 0; i < dataset.size()-1; i++) {
             for (int j = i+1; j < dataset.size(); j++) {
                 String pair = i + " " + j;
                 double distance = findDistance(dataset.get(i), dataset.get(j));
@@ -76,5 +77,19 @@ public class DPC {
             dCut = 0.5 * (maxTmp + minTmp);
         }
         return dCut;
+    }
+
+    /**
+     * Finds rho for each point in the dataset within a cutoff distance (also considered close neighbours inside certain distance). 
+     * @param dCut distance of which rho will be incremented if another point is closer than dCut.
+     */
+    public void calculateRhoForEachPoint(double dCut){
+        for(Map.Entry<String, Double> pair : distanceBetweenPairsMap.entrySet()){
+            if (pair.getValue() < dCut) {
+                int[] pointPair = Stream.of(pair.getKey().split(" ")).mapToInt(Integer::parseInt).toArray();
+                dataset.get(pointPair[0]).incrementRho();
+                dataset.get(pointPair[1]).incrementRho();
+            }
+        }
     }
 }
