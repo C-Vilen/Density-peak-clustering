@@ -51,5 +51,30 @@ public class DPC {
         return distance;
     }
 
-
+    /**
+     * Finds the cutoff distance which is used to calculate the rho of each point that is closer than that. 
+     * @return cutoff distance (dCut)
+     */
+    public double findDCut() {
+        double minTmp = minDistance;
+        double maxTmp = maxDistance;
+        double dCut = (minTmp + maxTmp) * 0.5;
+        int totalPairs = dataset.size() * (dataset.size() - 1) / 2; // total number of pairs
+    
+        for(int iteration = 0; iteration < 100; iteration ++) {
+            int neighbourNum = 0;
+            for(Map.Entry<String, Double> pair : distanceBetweenPairsMap.entrySet()) {
+                if(pair.getValue() < dCut) neighbourNum += 2;
+            }
+            double neighborPercentage = (double) neighbourNum / totalPairs;
+            if(neighborPercentage >= 0.01 && neighborPercentage <= 0.02) break;
+            if(neighborPercentage > 0.02) {
+                maxTmp = dCut;
+            } else {
+                minTmp = dCut;
+            }
+            dCut = 0.5 * (maxTmp + minTmp);
+        }
+        return dCut;
+    }
 }

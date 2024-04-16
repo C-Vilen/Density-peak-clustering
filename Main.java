@@ -10,6 +10,8 @@ public class Main {
         // 3. Find distance between all pairs
         dpc.calculateDistanceBetweenPairs();
 
-        // 4. Find dCut
+        // 4. Find dCut for each point over 100 iterations
+        double dCut = dpc.findDCut();
+        System.out.println("dCut = " + dCut);
     }
 }
